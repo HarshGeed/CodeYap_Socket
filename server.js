@@ -136,6 +136,21 @@ io.on("connection", (socket) => {
     socket.to(data.roomId).emit("message-seen", data);
   });
 
+  // --- NOTIFICATION/CONNECTION EVENTS ---
+  socket.on("connection-accepted", (data) => {
+    // Broadcast to both users involved in the connection
+    io.to(data.userId).emit("connection-accepted", data);
+    io.to(data.fromUserId).emit("connection-accepted", data);
+    console.log(`Connection accepted: ${data.fromUserId} -> ${data.userId}`);
+  });
+
+  socket.on("group-updated", (data) => {
+    // Broadcast to the specific user
+    io.to(data.userId).emit("group-updated", data);
+    console.log(`Group updated for user: ${data.userId}, group: ${data.groupId}, type: ${data.type}`);
+  });
+  // --- END NOTIFICATION/CONNECTION EVENTS ---
+
   // Handle user disconnection
   socket.on("disconnect", () => {
     console.log(`[${new Date().toISOString()}] User disconnected: ${socket.id}`);
