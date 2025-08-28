@@ -1,0 +1,20 @@
+{
+  "name": "codeyap-socket-server",
+  "version": "1.0.0",
+  "description": "Socket.IO server for CodeYap - Real-time chat and presence tracking",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["socket.io", "chat", "real-time", "websocket"],
+  "author": "Your Name",
+  "license": "MIT"
+}
