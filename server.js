@@ -37,6 +37,42 @@ httpServer.on('request', (req, res) => {
     return;
   }
 
+  if (req.url === '/emit-event' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        const { event, data } = JSON.parse(body);
+        
+        // Check if we should emit to specific users or globally
+        if (event === 'connection-accepted' && data.userId && data.fromUserId) {
+          // Emit to both users involved in the connection
+          io.to(data.userId).emit(event, data);
+          io.to(data.fromUserId).emit(event, data);
+          console.log(`Emitted ${event} to users: ${data.userId}, ${data.fromUserId}`);
+        } else if (event === 'group-updated' && data.userId) {
+          // Emit to specific user
+          io.to(data.userId).emit(event, data);
+          console.log(`Emitted ${event} to user: ${data.userId}`);
+        } else {
+          // Default: emit globally
+          io.emit(event, data);
+          console.log(`Emitted ${event} globally with data:`, data);
+        }
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (error) {
+        console.error('Error emitting event:', error);
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
+    return;
+  }
+
   // Default 404 response
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ error: 'Not Found' }));
@@ -78,6 +114,10 @@ io.on("connection", (socket) => {
         status: "online",
         lastSeen: new Date().toISOString()
       });
+      
+      // Join a room with the user's ID for targeted messaging
+      socket.join(userId);
+      console.log(`User ${userId} joined room ${userId}`);
       
       // Emit status update to all clients
       io.emit("user-status", { 
